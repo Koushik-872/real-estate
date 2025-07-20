@@ -41,23 +41,27 @@ const components = {
     );
   },
   SignIn: {
-    Footer() {
-      const { toSignUp } = useAuthenticator();
-      return (
-        <View className="text-center mt-4">
-          <p className="text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <button
-              onClick={toSignUp}
-              className="text-primary hover:underline bg-transparent border-none p-0"
-            >
-              Sign up here
-            </button>
-          </p>
-        </View>
-      );
-    },
+  Footer() {
+    const { toSignUp } = useAuthenticator();
+
+    return (
+      <View className="text-center mt-4 space-y-2">
+        <p className="text-muted-foreground">
+          Don&apos;t have an account?{" "}
+          <button
+            onClick={toSignUp}
+            className="text-primary hover:underline bg-transparent border-none p-0"
+          >
+            Sign up here
+          </button>
+        </p>
+        {/* Let Amplify render its default forgot password link */}
+        <Authenticator.SignIn.Footer />
+      </View>
+    );
   },
+},
+
   SignUp: {
     FormFields() {
       const { validationErrors } = useAuthenticator();
