@@ -16,9 +16,18 @@ export const listApplications = async (
       if (userType === "tenant") {
         whereClause = { tenantCognitoId: String(userId) };
       } else if (userType === "manager") {
+        // 🔧 FIX: Fetch properties managed by the manager first
+        const properties = await prisma.property.findMany({
+          where: { managerCognitoId: String(userId) },
+          select: { id: true },
+        });
+        
+
+        const propertyIds = properties.map((p) => p.id);
+
         whereClause = {
-          property: {
-            managerCognitoId: String(userId),
+          propertyId: {
+            in: propertyIds,
           },
         };
       }
@@ -110,13 +119,12 @@ export const createApplication = async (
     }
 
     const newApplication = await prisma.$transaction(async (prisma) => {
-      // Create lease first
       const lease = await prisma.lease.create({
         data: {
-          startDate: new Date(), // Today
+          startDate: new Date(),
           endDate: new Date(
             new Date().setFullYear(new Date().getFullYear() + 1)
-          ), // 1 year from today
+          ),
           rent: property.pricePerMonth,
           deposit: property.securityDeposit,
           property: {
@@ -128,7 +136,6 @@ export const createApplication = async (
         },
       });
 
-      // Then create application with lease connection
       const application = await prisma.application.create({
         data: {
           applicationDate: new Date(applicationDate),
@@ -201,7 +208,6 @@ export const updateApplicationStatus = async (
         },
       });
 
-      // Update the property to connect the tenant
       await prisma.property.update({
         where: { id: application.propertyId },
         data: {
@@ -211,7 +217,6 @@ export const updateApplicationStatus = async (
         },
       });
 
-      // Update the application with the new lease ID
       await prisma.application.update({
         where: { id: Number(id) },
         data: { status, leaseId: newLease.id },
@@ -222,14 +227,12 @@ export const updateApplicationStatus = async (
         },
       });
     } else {
-      // Update the application status (for both "Denied" and other statuses)
       await prisma.application.update({
         where: { id: Number(id) },
         data: { status },
       });
     }
 
-    // Respond with the updated application details
     const updatedApplication = await prisma.application.findUnique({
       where: { id: Number(id) },
       include: {
