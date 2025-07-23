@@ -293,28 +293,16 @@ export const api = createApi({
     }),
 
     // application related endpoints
-    getApplications: build.query<
-      Application[],
-      { userId?: string; userType?: string }
-    >({
-      query: (params) => {
-        const queryParams = new URLSearchParams();
-        if (params.userId) {
-          queryParams.append("userId", params.userId.toString());
-        }
-        if (params.userType) {
-          queryParams.append("userType", params.userType);
-        }
+    getApplications: build.query<Application[], void>({
+  query: () => `applications`,
+  providesTags: ["Applications"],
+  async onQueryStarted(_, { queryFulfilled }) {
+    await withToast(queryFulfilled, {
+      error: "Failed to fetch applications.",
+    });
+  },
+}),
 
-        return `applications?${queryParams.toString()}`;
-      },
-      providesTags: ["Applications"],
-      async onQueryStarted(_, { queryFulfilled }) {
-        await withToast(queryFulfilled, {
-          error: "Failed to fetch applications.",
-        });
-      },
-    }),
 
     updateApplicationStatus: build.mutation<
       Application & { lease?: Lease },
