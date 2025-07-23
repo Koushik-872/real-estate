@@ -21,15 +21,7 @@ const Applications = () => {
     data: applications,
     isLoading,
     isError,
-  } = useGetApplicationsQuery(
-    {
-      userId: authUser?.cognitoInfo?.userId,
-      userType: "manager",
-    },
-    {
-      skip: !authUser?.cognitoInfo?.userId,
-    }
-  );
+  } = useGetApplicationsQuery();
   const [updateApplicationStatus] = useUpdateApplicationStatusMutation();
 
   const handleStatusChange = async (id: number, status: string) => {
