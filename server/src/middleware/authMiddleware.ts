@@ -29,6 +29,8 @@ export const authMiddleware = (allowedRoles: string[]) => {
     try {
       const decoded = jwt.decode(token) as DecodedToken;
       const userRole = decoded["custom:role"] || "";
+      console.log("Decoded JWT:", decoded);
+    
       req.user = {
         id: decoded.sub,
         role: userRole,
